@@ -5,12 +5,13 @@
 #include "Fetch.hpp"
 #include "Utility.hpp"
 #include "Parser.hpp"
-
+#include "IO.hpp"
+#include <thread>
 namespace db{
-    //Start Engine Thread and return to main.
+    //Start Database Engine // invokes I/O event loop
     bool startDBEngine();
 
-    //Stop Engine in main
+    //Stop Engine
     bool endDBEngine();
 }
 
