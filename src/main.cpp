@@ -2,6 +2,6 @@
 #include "CppDB.hpp"
 
 int main() {
-    std::cout << "Hello Easy C++ project!" << std::endl;
+    std::cout << "Hello CppDB" << std::endl;
     db::startDBEngine();
 }
