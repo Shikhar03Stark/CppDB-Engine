@@ -6,6 +6,6 @@
 #include "Fetch.hpp"
 
 namespace db{
-    fetch parseInput(std::vector<std::string> token);
+    fetch parseInput(std::vector<std::string> &token, db::state currentState);
 }
 #endif

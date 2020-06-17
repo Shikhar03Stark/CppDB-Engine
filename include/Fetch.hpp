@@ -1,14 +1,15 @@
 #ifndef H_FETCH
 #define H_FETCH
-#include "Exception.hpp"
 #include <vector>
 #include <string>
 #include <map>
+#include <filesystem>
 namespace db{
     struct state{ //stores the current DB state for each instance of Engine
         bool usingDB;
         std::string DBname;
         char pathType; // a = absolute and r = relative
+        std::filesystem::directory_entry currDir;
     };
 
     struct option{
@@ -37,8 +38,10 @@ namespace db{
         bool hasHeader;
         bool hasRows;
         std::string message;
-        std::string header;
-        std::vector<std::string> rows;
+
+        //console IO variables
+        std::vector<std::string> header;
+        std::map<std::string, std::vector<std::string> > rows;
         std::string displayInfo;
     };
 }
