@@ -1,6 +1,6 @@
 #include "IO.hpp"
 
-db::fetch db::acceptInput(db::state currentState){
+db::fetch db::acceptInput(db::state &currentState){
     //start with newline
     std::cout << std::endl;
     //input should have '>>' on each line at beginning
@@ -10,10 +10,14 @@ db::fetch db::acceptInput(db::state currentState){
     std::string inBuffer;
     std::string line_str;
     std::getline(std::cin, line_str);
+    line_str.push_back(' ');
     inBuffer += line_str;
     //untill a complete statment is genrated accept input
-    while(line_str[line_str.size()-1] == '(' || line_str[line_str.size()-1] == ','){
+    //better ';' means complete statement
+    while(line_str[line_str.size()-1] != ';' && line_str[line_str.size()-2] != ';'){
+        std::cout << ">> ";
         std::getline(std::cin, line_str);
+        line_str.push_back(' ');
         inBuffer += line_str;
     }
 
@@ -25,14 +29,21 @@ db::fetch db::acceptInput(db::state currentState){
     //spaces between field name are not allowed, use _ instead
     std::string token;
     for(char c: inBuffer){
-        if(c == '(' || c == ',' || c==')'){
+        if(c == '(' || c == ',' || c==')' || c ==' ' || c == ';'){
             //split point
-            tokens.push_back(token);
+            if(token != "")
+                tokens.push_back(token);
             //clearing token
             //pushing delimiter to tokens
+            if(c == ' ' || c == ';'){
+                token = "";
+                continue;
+            }
             token = c;
-            tokens.push_back(token);
+            if(token != "")
+                tokens.push_back(token);
             token = "";
+            continue;
         }
         
         //build token
@@ -44,8 +55,16 @@ db::fetch db::acceptInput(db::state currentState){
 
 
     //parse input
-    db::fetch data = db::parseInput(tokens, currentState);
-    
+    db::fetch data;
+    try{
+        data = db::parseInput(tokens, currentState);
+    }
+    catch(db::dbException &e){
+        throw e;
+    }
+    catch(...){
+        throw(db::dbException(200, "Undefined Behaviour : IO::ParseInput()"));
+    }
     return data;
 }
 
@@ -71,7 +90,7 @@ void db::displayOutput(db::fetch data){
         n_cols = data.header.size();
         std::cout << line << std::endl << "|";
         for(int i = 0; i<n_cols; i++){
-            std::cout << std::setw(cell_span-1) << std::left << "Header" << "|";
+            std::cout << std::setw(cell_span-1) << std::left << data.header[i] << "|";
         }
         std::cout << std::endl;
     }
@@ -88,14 +107,18 @@ void db::displayOutput(db::fetch data){
             }
             std::cout << std::endl;
         }
+        std::cout << line << std::endl;
     }
     //rows complete
     //add ending line
-    std::cout << line << std::endl;
 
     //display info if any
     if(data.displayInfo.size() != 0){
         std::cout << std::endl << data.displayInfo << std::endl;
     }
 
+    //Error output
+    if(data.message == "err"){
+        std::cout << data.displayInfo << std::endl;
+    }
 }

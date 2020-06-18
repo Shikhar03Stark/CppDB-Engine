@@ -1,0 +1,125 @@
+#include "Parser.hpp"
+
+std::string& db::toUppercase(std::string &str){
+    for(char &c: str){
+        c = std::toupper(c);
+    }
+    return str;
+}
+
+db::fetch db::parseInput(std::vector<std::string> &tokens, db::state &currentState){
+    //Parsing includes a decision tree
+    //CREATE
+    //|--TABLE {TABLENAME}
+    //|----[{TYPE,COLS}] invoke newTable(...)
+    //|--DATABASE {DATABASENAME} invoke createDB(...)
+
+    //SELECT
+    //|--[COLS] FROM {TABLENAME}
+    //|----WHERE [{CONDITIONS}]
+    //|----ORDER BY [COLS] {ASC/DESC} invoke showTable(...)
+
+    //INSERT INTO
+    //|--{TABLENAME} [COLS] VALUES 
+    //|----[VALUES] invoke insertTable(...)
+
+    //UPDATE
+    //|--{TABLENAME} SET
+    //|--[{COL,VALUE}]
+    //|--WHERE [{CONDITIONS}] invoke updateTable(...)
+
+    //DELETE FROM
+    //|--{TABLENAME} WHERE
+    //|--[{CONDITIONS}] invoke dropTable(...)
+
+    //DROP
+    //|--TABLE {TABLENAME} invoke dropTable(...)
+    //|--DATABASE {DATABASENAME} invoke dropDB(...)
+
+    //SHOW DATABASES invoke listDB(...)
+
+    //USE
+    //|--{DATABASENAME} invoke useDB(...);
+
+    db:fetch data;
+    //Parsing CREATE
+    if(toUppercase(tokens[0]) == "CREATE"){
+        //TABLE
+        if(toUppercase(tokens[1]) == "TABLE"){
+            if(tokens.size() > 2){
+                std::string tableName = tokens[2];
+                // column details are enclosed between (, )
+                //generate option data structure
+                db::option ds;
+                ds.tableCreation = true;
+                //while we don't encounter a )
+                int index = 4; //index = 3 is (
+                std::vector<std::string> elements;
+                try{
+                    while(index != tokens.size()){
+                        if(tokens[index] == "," || tokens[index] == ")"){
+                            ds.createTableList.list.resize(ds.createTableList.list.size()+1);
+                            ds.createTableList.list[ds.createTableList.list.size()-1].first = elements[0];
+                            elements.erase(elements.begin());
+                            ds.createTableList.list[ds.createTableList.list.size()-1].second = elements;
+                            elements.resize(0);
+                            ++index;
+                            continue;
+                        }
+                        //generate elemets vector
+                        elements.push_back(tokens[index]);
+                        ++index;
+                    }
+                }
+                catch(...){
+                    throw(db::dbException(101, "Table column definition list not well defined"));
+                }
+
+                //Create Table Parse Complete
+                try{
+                    data = db::newTable(currentState, ds);
+                }
+                catch(db::dbException &e){
+                    throw (e);
+                }
+                catch(...){
+                    throw (db::dbException(200, "Undefined Behaviour : Parser::newTable()"));
+                }
+            }
+            else{
+                //throw error
+                throw (db::dbException(105, "Name of Table not provided @token = 2"));
+            }
+        }
+        //DATABASE
+        else if(toUppercase(tokens[1]) == "DATABASE"){
+            if(tokens.size() > 2){
+                std::string dbname = tokens[2];
+                try{
+                    //create new database
+                    data = db::createNewDB(currentState, dbname);
+                    return data;
+                }
+                catch(db::dbException &e){
+                    throw (e);
+                }
+                catch(...){
+                    throw(db::dbException(200, "Undefined Behaviour : Parser::createNewDB()"));
+                }
+            }
+            else{
+                //throw error
+                throw (db::dbException(105, "Name of Database not provided @token = 2") );
+            }
+        }
+        //Syntax Error
+        else{
+            throw (db::dbException(101,"Invalid CREATE syntax error @token = 1") );
+        }
+    }
+    //Create Parsing complete
+
+    else{
+        throw (db::dbException(101, "Invalid Syntax @token = 0"));
+    }
+}

@@ -7,7 +7,7 @@
 #include "Exception.hpp"
 namespace db{
     //Accept Input from Console and tokenize
-    db::fetch acceptInput(db::state currentState);
+    db::fetch acceptInput(db::state &currentState);
 
     //Present Output to Console
     void displayOutput(db::fetch);

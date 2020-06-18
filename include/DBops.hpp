@@ -5,9 +5,12 @@
 #include <fstream>
 
 namespace db{
-    fetch createNewDB(std::string dbname, std::string dbpass);
-    fetch listDB();
-    fetch useDB();
-    fetch setNewDir(std::string path);
+    fetch createNewDB(state &currentState, std::string dbname);
+
+    fetch listDB(state &currentState);
+
+    fetch useDB(state &currentState, std::string dbname);
+
+    fetch setNewDir(state &currentState, std::string path);
 }
 #endif

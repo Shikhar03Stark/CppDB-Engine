@@ -13,30 +13,34 @@ namespace db{
     };
 
     struct option{
-        bool isWhere; //conditional selection
-        bool isSort; //sorting
-        bool hasRows; //conditional reading
-        bool insertInto;
+        bool isWhere = false; //conditional selection
+        bool isSort = false; //sorting
+        bool hasRows = false; //conditional reading
+        bool insertInto = false;
+        bool tableCreation = false;
         struct where
         {
-            std::vector<std::pair<std::string, std::string> > whereList;
-        };
+            std::vector<std::pair<std::string, std::string> > list;
+        } whereList;
         struct sort{
             char type; //a = ascending, d = descending
         };
-        struct row{
-            std::vector<std::string> rows;
-        };
+        struct rows{
+            std::vector<std::string> list;
+        } rowsList;
         struct insert{
-            std::vector<std::pair<std::string, std::vector<std::string> > > insertList;
-        };
+            std::vector<std::pair<std::string, std::vector<std::string> > > list;
+        } insertList;
+        struct tableCreate{
+            std::vector<std::pair<std::string, std::vector<std::string> > > list;
+        } createTableList;
         
     };
 
     struct fetch{ //function return handler
-        bool success;
-        bool hasHeader;
-        bool hasRows;
+        bool success = false;
+        bool hasHeader = false;
+        bool hasRows = false;
         std::string message;
 
         //console IO variables
