@@ -13,21 +13,24 @@ namespace db{
     };
 
     struct option{
-        bool isWhere = false; //conditional selection
-        bool isSort = false; //sorting
-        bool hasRows = false; //conditional reading
+        bool hasWhere = false; //conditional selection
+        bool hasSort = false; //sorting
+        bool hasCols = false; //conditional reading
+        bool hasAstericks = false;
         bool insertInto = false;
         bool tableCreation = false;
         struct where
         {
             std::vector<std::pair<std::string, std::string> > list;
+            std::vector<std::string> ops;
         } whereList;
         struct sort{
-            char type; //a = ascending, d = descending
-        };
-        struct rows{
             std::vector<std::string> list;
-        } rowsList;
+            char type; //a = ascending, d = descending
+        } sortList;
+        struct cols{
+            std::vector<std::string> list;
+        } colsList;
         struct insert{
             std::vector<std::pair<std::string, std::vector<std::string> > > list;
         } insertList;

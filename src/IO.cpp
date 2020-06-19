@@ -35,7 +35,13 @@ db::fetch db::acceptInput(db::state &currentState){
                 tokens.push_back(token);
             //clearing token
             //pushing delimiter to tokens
-            if(c == ' ' || c == ';'){
+            if(c == ' '){
+                token = "";
+                continue;
+            }
+            else if(c == ';'){
+                token = c;
+                tokens.push_back(token);
                 token = "";
                 continue;
             }
@@ -58,6 +64,7 @@ db::fetch db::acceptInput(db::state &currentState){
     db::fetch data;
     try{
         data = db::parseInput(tokens, currentState);
+        return data;
     }
     catch(db::dbException &e){
         throw e;
@@ -65,7 +72,6 @@ db::fetch db::acceptInput(db::state &currentState){
     catch(...){
         throw(db::dbException(200, "Undefined Behaviour : IO::ParseInput()"));
     }
-    return data;
 }
 
 void db::displayOutput(db::fetch data){

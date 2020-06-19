@@ -1,10 +1,11 @@
 #include "Parser.hpp"
 
-std::string& db::toUppercase(std::string &str){
-    for(char &c: str){
+std::string db::toUppercase(const std::string &str){
+    std::string temp(str);
+    for(char &c: temp){
         c = std::toupper(c);
     }
-    return str;
+    return temp;
 }
 
 db::fetch db::parseInput(std::vector<std::string> &tokens, db::state &currentState){
@@ -66,7 +67,7 @@ db::fetch db::parseInput(std::vector<std::string> &tokens, db::state &currentSta
                             ++index;
                             continue;
                         }
-                        //generate elemets vector
+                        //fill elemets vector
                         elements.push_back(tokens[index]);
                         ++index;
                     }
@@ -77,7 +78,8 @@ db::fetch db::parseInput(std::vector<std::string> &tokens, db::state &currentSta
 
                 //Create Table Parse Complete
                 try{
-                    data = db::newTable(currentState, ds);
+                    data = db::newTable(currentState, ds, tableName);
+                    return data;
                 }
                 catch(db::dbException &e){
                     throw (e);
@@ -118,6 +120,127 @@ db::fetch db::parseInput(std::vector<std::string> &tokens, db::state &currentSta
         }
     }
     //Create Parsing complete
+
+    //SELECT Parsing
+    else if(toUppercase(tokens[0]) == "SELECT"){
+        //check for * or specified Columns
+        db::option ds;
+        int index = 1;
+        if(tokens[1] == "*"){
+            ds.hasAstericks = true;
+            ++index;
+        }
+        //Parse selected Columns
+        else{
+            ds.hasCols = true;
+            //accept tokens untill 'FROM' keyword is hit
+            while(toUppercase(tokens[index]) != "FROM" || toUppercase(tokens[index]) != ";"){
+                if(tokens[index] == ","){
+                    ++index;
+                    continue;
+                }
+                ds.colsList.list.push_back(tokens[index]);
+                ++index;
+            }
+            if(tokens[index] == ";"){
+                //bad syntax
+                std::string str = "Invalid 'SELECT' Syntax @token = " + std::to_string(index);
+                throw (db::dbException(101, str));
+            }
+        }
+        //Cols Parsed
+        //store tablename
+        std::string tablename = tokens[++index];
+
+        //Check for 'WHERE' clause
+        if(toUppercase(tokens[index+1]) == "WHERE") {
+            ++index;
+            ++index;
+            ds.hasWhere = true;
+            
+            //take next three consecutive token untill ';' or 'ORDER' is hit
+            while(tokens[index] == ";" || tokens[index] == "ORDER"){
+                if(tokens[index] == ";" || tokens[index] == "ORDER"){
+                    ds.whereList.list.resize(ds.whereList.list.size()+1);
+                    ds.whereList.list[ds.whereList.list.size()-1].first = tokens[index];
+                    ++index;
+                }
+                if(tokens[index] == ";" || tokens[index] == "ORDER"){
+                    ds.whereList.ops.push_back(tokens[index]);
+                    ++index;
+                }
+                if(tokens[index] == ";" || tokens[index] == "ORDER"){
+                    ds.whereList.list[ds.whereList.list.size()-1].second = tokens[index];
+                    ++index;
+                }
+            }
+            if(tokens[index] == ";"){
+                try{
+                    data = db::showTable(currentState, ds, tablename);
+                    return data;
+                }
+                catch(db::dbException &e){
+                    throw e;
+                }
+                catch(...){
+                    throw(db::dbException(200, "Undefined Behaviour Parser::showTable()"));
+                }
+            }
+            else
+                ++index;
+        }
+        //Check for 'ORDER' clause
+        if(toUppercase(tokens[index+1]) == "ORDER"){
+            ++index;
+            ds.hasSort = true;
+            if(toUppercase(tokens[++index]) == "BY"){
+                ++index;
+                while(tokens[index] != ";" || toUppercase(tokens[index]) != "ASC" || toUppercase(tokens[index]) != "DESC"){
+                    ds.sortList.list.push_back(tokens[index]);
+                    ++index;
+                }
+                if(toUppercase(tokens[index]) == "ASC"){
+                    ds.sortList.type = 'a';
+                }
+                else if(toUppercase(tokens[index]) == "DESC"){
+                    ds.sortList.type = 'd';
+                }
+
+                try{
+                    data = db::showTable(currentState, ds, tablename);
+                    return data;
+                }
+                catch(db::dbException &e){
+                    throw e;
+                }
+                catch(...){
+                    throw(db::dbException(200, "Undefined Behaviour Parser::showTable()"));
+                }
+            }
+            else{
+                //bad syntax
+                std::string str = "Invalid 'ORDER' Syntax @token = " + std::to_string(index);
+                throw(db::dbException(101, str));
+            }
+        }
+        else{
+            //bad syntax
+            if(tokens[++index] == ";"){
+                try{
+                    data = db::showTable(currentState, ds, tablename);
+                    return data;
+                }
+                catch(db::dbException &e){
+                    throw e;
+                }
+                catch(...){
+                    throw(db::dbException(200, "Undefined Behaviour Parser::showTable()"));
+                }
+            }
+            std::string str = "Invalid 'ORDER' Syntax @token = " + std::to_string(index);
+            throw(db::dbException(101, str));
+        }
+    }
 
     else{
         throw (db::dbException(101, "Invalid Syntax @token = 0"));

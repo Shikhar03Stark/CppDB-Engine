@@ -7,6 +7,6 @@
 
 namespace db{
     db::fetch parseInput(std::vector<std::string> &tokens, db::state &currentState);
-    std::string& toUppercase(std::string &str);
+    std::string toUppercase(const std::string &str);
 }
 #endif
